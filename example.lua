@@ -7,6 +7,7 @@ end
 
 function g.key(x,y,z)
   g:led(x,y,15)
+  g:all(15)
   g:refresh()
 end
 

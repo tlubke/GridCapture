@@ -37,6 +37,18 @@ function GridCapture:set_grid(g)
     g.led2 = clone_function(g.led)
     g.led = function(g, x, y, z) g:led2(x, y, z) g.led_state[x][y] = z end
   end
+  
+  if g.all2 == nil then
+    g.all2 = clone_function(g.all)
+    g.all = function(g,z)
+      g:all2(z)
+      for x = 1, #g.led_state do
+        for y =1, #g.led_state[x] do
+          g.led_state[x][y] = z
+        end
+      end
+    end
+  end
   self.grid = g
 end
 
