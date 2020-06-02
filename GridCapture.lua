@@ -1,32 +1,3 @@
-function clone (t)           -- t is a table
-  local new_t = {}           -- create a new table
-  local i, v = next(t, nil)  -- i is an index of t, v = t[i]
-  while i do
-    if type(v) == "table" then
-      new_t[i] = clone(v)
-    else
-      new_t[i] = v
-    end
-    i, v = next(t, i)        -- get next index
-  end
-  return new_t
-end
-
-function clone_function(fn)
-  local dumped = string.dump(fn)
-  local cloned = load(dumped)
-  local i = 1
-  while true do
-    local name = debug.getupvalue(fn, i)
-    if not name then
-      break
-    end
-    debug.upvaluejoin(cloned, i, fn, i)
-    i = i + 1
-  end
-  return cloned
-end
-
 GridCapture = {}
 
 GridCapture.grid = nil
@@ -37,6 +8,22 @@ local err_no_grid = "GridCapture has no set grid."
 
 function GridCapture:set_grid(g)
   if self.grid ~= nil then return end
+  
+  local function clone_function(fn)
+    local dumped = string.dump(fn)
+    local cloned = load(dumped)
+    local i = 1
+    while true do
+      local name = debug.getupvalue(fn, i)
+      if not name then
+        break
+      end
+      debug.upvaluejoin(cloned, i, fn, i)
+      i = i + 1
+    end
+    return cloned
+  end
+  
   -- create state of grid leds
   g.led_state = {}
   for i=1, g.cols do
@@ -150,7 +137,7 @@ end
 
 function GridCapture:screenshot(output_path)
   local g = self.grid
-  render_led_state(g.led_state, output_path)
+  self:render_led_state(g.led_state, output_path)
 end
 
 function GridCapture:record(fps, duration, output_path)
@@ -164,6 +151,20 @@ function GridCapture:record(fps, duration, output_path)
   if g == nil then
     print(err_no_grid)
     return
+  end
+
+  local function clone (t)
+    local new_t = {}
+    local i, v = next(t, nil)  
+    while i do
+      if type(v) == "table" then
+        new_t[i] = clone(v)
+      else
+        new_t[i] = v
+      end
+      i, v = next(t, i)
+    end
+    return new_t
   end
 
   os.execute("mkdir /tmp/frames")
