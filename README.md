@@ -8,8 +8,11 @@ screenshot and record grid led states in norns
 - `GridCapture:screenshot(export_path)` works with .jpg, .png, .gif, and more.
 - `GridCapture:record(fps, duration, export_path)` must be a .gif
 
-*NOTE: `screenshot()` and `record` require that `GridCapture` has used `set_grid()` with a valid grid instance. 
+*NOTE: `screenshot()` and `record()` require that `GridCapture` has used `set_grid()` with a valid grid instance. 
+
+*DISCLAIMER: `record()` exits the current script to run [Render](Render.lua), make sure you save any important changes before recording.
 
 ## themes
 - "default"
 - "bw"
+
