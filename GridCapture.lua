@@ -5,6 +5,7 @@ GridCapture = {}
 
 GridCapture.grid = nil
 GridCapture.frames = nil
+GridCapture.fps = nil
 GridCapture.output_path = nil
 GridCapture.colors = { -- default
   key = "#fbfbfb",
@@ -214,6 +215,7 @@ function GridCapture:record(fps, duration, output_path)
         clock.sleep(delay_s)
       end
       self.frames = frames
+      self.fps = fps
       self.output_path = output_path
       self:render()
     end
@@ -224,7 +226,7 @@ function GridCapture:render_frames()
   for i=1, #self.frames do
     self:render_led_state(self.frames[i], "/tmp/frames/"..string.format("%04d",i)..".gif")
   end
-  os.execute("convert -delay 10 -dispose previous -loop 0 /tmp/frames/*.gif "..self.output_path)
+  os.execute("convert -delay "..100/self.fps.." -dispose previous -loop 0 /tmp/frames/*.gif "..self.output_path)
   os.execute("rm -r /tmp/frames")
 end
 
