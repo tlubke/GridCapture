@@ -3,11 +3,12 @@ local gcap = require 'GridCapture/GridCapture'
 
 function init()
   gcap:set_grid(g)
+  g:all(0)
+  g:refresh()
 end
 
 function g.key(x,y,z)
   g:led(x,y,15)
-  g:all(15)
   g:refresh()
 end
 
