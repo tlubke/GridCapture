@@ -1,10 +1,17 @@
+local themes = include "GridCapture/Themes"
+local err_no_grid = "GridCapture has no set grid."
+
 GridCapture = {}
 
 GridCapture.grid = nil
 GridCapture.frames = nil
 GridCapture.output_path = nil
-
-local err_no_grid = "GridCapture has no set grid."
+GridCapture.colors = { -- default
+  key = "#fbfbfb",
+  led = "#fff03e",
+  grid = "#e6e6e6",
+  outline = "black"
+}
 
 function GridCapture:set_grid(g)
   if self.grid ~= nil then return end
@@ -52,6 +59,21 @@ function GridCapture:set_grid(g)
   self.grid = g
 end
 
+function GridCapture:set_colors(key, led, grid, outline)
+  self.colors.key = key
+  self.colors.led = led
+  self.colors.grid = grid
+  self.colors.outline = outline
+end
+
+function GridCapture:set_theme(theme)
+  if themes[theme] then
+    self:set_colors(table.unpack(themes[theme]))
+  else
+    self:set_colors(table.unpack(themes["default"]))
+  end
+end
+
 function GridCapture:render_led_state(led_state, export_path)
   local g = self.grid
   if g == nil then
@@ -61,9 +83,6 @@ function GridCapture:render_led_state(led_state, export_path)
   local key_size = 9
   local key_spacing = 6
   local margin = 11
-  local key_color = "#fbfbfb"
-  local led_color = "#fff79a"
-  local grid_color = "#e6e6e6"
   local grid_width =  (g.cols*(key_size+key_spacing))-key_spacing+(2*margin)
   local grid_height = (g.rows*(key_size+key_spacing))-key_spacing+(2*margin)
   
@@ -75,14 +94,16 @@ function GridCapture:render_led_state(led_state, export_path)
     ..grid_height
     ..' xc:none'
     ..' -fill none'
-    ..' -stroke black \\\n'
+    ..' -stroke '
+    ..self.colors.outline
+    ..' \\\n'
     
     
   -- draw grid
   script = 
       script
     ..'-draw "fill '
-    ..grid_color
+    ..self.colors.grid
     ..'\troundrectangle '
     ..'0,0 ' -- corner 1 coordinate
     ..grid_width-1 -- corner 2 x
@@ -95,26 +116,28 @@ function GridCapture:render_led_state(led_state, export_path)
     ..' " \\\n'
     
     
-  -- draw keys' background
-  for y = 1, g.rows do
-    for x = 1, g.cols do
-      local rect_size = 
-          ((x-1)*(key_size+key_spacing))+margin
-        ..','
-        ..((y-1)*(key_size+key_spacing))+margin
-        ..' '
-        ..((x-1)*(key_size+key_spacing))+key_size-1+margin
-        ..','
-        ..((y-1)*(key_size+key_spacing))+key_size-1+margin
-      script = 
-          script
-        ..'-draw "fill '
-        ..key_color
-        ..'\trectangle '
-        ..rect_size
-        ..' " \\\n'
+  -- draw keys' background if needed
+  if self.colors.key ~= self.colors.grid then
+    for y = 1, g.rows do
+      for x = 1, g.cols do
+        local rect_size = 
+            ((x-1)*(key_size+key_spacing))+margin
+          ..','
+          ..((y-1)*(key_size+key_spacing))+margin
+          ..' '
+          ..((x-1)*(key_size+key_spacing))+key_size-1+margin
+          ..','
+          ..((y-1)*(key_size+key_spacing))+key_size-1+margin
+        script = 
+            script
+          ..'-draw "fill '
+          ..self.colors.key
+          ..'\trectangle '
+          ..rect_size
+          ..' " \\\n'
+      end
     end
-  end  
+  end
     
   -- draw leds over keys' background
   for y = 1, g.rows do
@@ -133,7 +156,7 @@ function GridCapture:render_led_state(led_state, export_path)
       script = 
           script
         ..'-draw "fill '
-        ..led_color
+        ..self.colors.led
         ..' '
         ..fill_opacity
         ..'\trectangle '
@@ -142,14 +165,13 @@ function GridCapture:render_led_state(led_state, export_path)
     end
   end
   script = script..export_path
-  --print(script)
   os.execute(script)
-  --print(util.time()-start)
 end
 
 function GridCapture:screenshot(output_path)
   local g = self.grid
   self:render_led_state(g.led_state, output_path)
+  print("grid state exported to "..output_path)
 end
 
 function GridCapture:record(fps, duration, output_path)
